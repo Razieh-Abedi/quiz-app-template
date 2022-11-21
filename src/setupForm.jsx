@@ -1,9 +1,9 @@
 import React from 'react'
 
-function setupForm() {
+function SetupForm() {
   return (
     <div>setupForm</div>
   )
 }
 
-export default setupForm
+export default SetupForm
