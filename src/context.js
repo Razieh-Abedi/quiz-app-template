@@ -1,12 +1,11 @@
 import React, { useState, useEffect, useContext } from "react";
+import axios from "axios";
 const API_ENDPOINT = "https://opentdb.com/api.php?";
 const url = "";
 const tempUrl =
   "https://opentdb.com/api.php?amount=10&category=21&difficulty=easy&type=multiple";
 
 const AppContext = React.createContext();
-
-
 
 const AppProvider = ({ children }) => {
   const [waiting, setWaiting] = useState(true);
@@ -18,15 +17,62 @@ const AppProvider = ({ children }) => {
 
   const [isModalOpen, setIsModalOpen] = useState(false);
 
- return <AppContext.Provider
-    value={{waiting, loading, questions, index, error, correct, isModalOpen}}
-  >
-    {children}
-  </AppContext.Provider>;
+  const fetchQuestions = async (url) => {
+    setLoading(true);
+    setWaiting(false);
+    const response = await axios(url).catch((err) => console.log(err));
+    if (response) {
+      const data = response.data.results;
+      if (data.length > 0) {
+        setQuestions(data);
+        setLoading(false);
+        setWaiting(false);
+        setError(false);
+      } else {
+        setWaiting(true);
+        setError(true);
+      }
+    } else {
+      setWaiting(true);
+    }
+  };
+
+  const nextQuestion = () => {
+    setIndex((oldIndex) => {
+      const index = oldIndex + 1;
+      if (index > questions.length - 1) {
+        //open modal
+        return 0;
+      } else {
+        return index;
+      }
+    });
+  };
+
+  useEffect(() => {
+    fetchQuestions(tempUrl);
+  }, []);
+
+  return (
+    <AppContext.Provider
+      value={{
+        waiting,
+        loading,
+        questions,
+        index,
+        error,
+        correct,
+        isModalOpen,
+        nextQuestion,
+      }}
+    >
+      {children}
+    </AppContext.Provider>
+  );
 };
 
 export const useGlobalContext = () => {
   return useContext(AppContext);
 };
 
- export { AppContext, AppProvider };
+export { AppContext, AppProvider };
